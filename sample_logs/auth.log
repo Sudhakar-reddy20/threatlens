@@ -1,0 +1,11 @@
+Nov  4 10:00:01 server01 sshd[1001]: Failed password for admin from 192.0.2.50 port 51001 ssh2
+Nov  4 10:01:10 server01 sshd[1002]: Failed password for admin from 192.0.2.50 port 51002 ssh2
+Nov  4 10:02:15 server01 sshd[1003]: Failed password for root from 192.0.2.50 port 51003 ssh2
+Nov  4 10:03:20 server01 sshd[1004]: Failed password for admin from 192.0.2.50 port 51004 ssh2
+Nov  4 10:04:30 server01 sshd[1005]: Failed password for admin from 192.0.2.50 port 51005 ssh2
+Nov  4 10:05:00 server01 sshd[2001]: Failed password for testuser from 198.51.100.25 port 52001 ssh2
+Nov  4 10:05:30 server01 sshd[2002]: Failed password for testuser from 198.51.100.25 port 52002 ssh2
+Nov  4 10:06:00 server01 sshd[2003]: Failed password for testuser from 198.51.100.25 port 52003 ssh2
+Nov  4 10:06:30 server01 sshd[2004]: Accepted password for testuser from 198.51.100.25 port 52004 ssh2
+Nov  4 10:07:00 server01 sshd[3001]: Accepted publickey for sudhakar from 203.0.113.10 port 53001 ssh2
+Nov  4 10:08:00 server01 sshd[3002]: Connection closed by authenticating user guest 203.0.113.20 port 53002 [preauth]
