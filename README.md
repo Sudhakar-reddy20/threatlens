@@ -245,7 +245,7 @@ Alerts should be investigated and validated before drawing conclusions about mal
 
 **Sudhakar Reddy**
 
-Cybersecurity | SOC Analysis | Blue Team | Python
+Cybersecurity | SOC Analysis | Blue Team 
 
 GitHub: [Sudhakar-reddy20](https://github.com/Sudhakar-reddy20)
 
