@@ -1,254 +1,318 @@
-# ThreatLens
-
-### See the evidence. Detect the threat.
-
-**An evidence-driven Python SOC log analysis and threat detection platform.**
-
-ThreatLens analyzes Linux SSH authentication logs, identifies suspicious login patterns, and generates structured security alerts with supporting evidence and investigation recommendations.
-
-## Overview
-
-Security analysts regularly investigate authentication logs to identify brute-force attempts, suspicious login activity, and potentially compromised accounts.
-
-ThreatLens automates part of this investigation process through log parsing, rule-based detection, event correlation, and report generation.
-
-## Key Features
-
-- **SSH log analysis:** Parse Linux SSH authentication records.
-- **Threat detection:** Identify repeated failed authentication attempts.
-- **Event correlation:** Detect successful logins following repeated failures.
-- **Evidence-based alerts:** Preserve relevant original log entries.
-- **Severity classification:** Generate HIGH and CRITICAL alerts.
-- **JSON reporting:** Export structured investigation results.
-- **CSV reporting:** Export alerts for spreadsheet-based analysis.
-- **Configurable detection:** Adjust thresholds and time windows.
-- **Automated testing:** Validate functionality using pytest.
-
-## Architecture
-
-    Linux SSH Authentication Logs
-                 |
-                 v
-             Log Parser
-                 |
-                 v
-        Authentication Events
-                 |
-                 v
-           Detection Engine
-                 |
-                 v
-            Security Alerts
-                 |
-                 v
-          JSON / CSV Reports
-
-Read the detailed [Architecture Documentation](docs/architecture.md).
-
-## Detection Rules
-
-| Rule ID | Detection | Severity |
-|---|---|---|
-| TL-SSH-001 | Repeated SSH authentication failures | HIGH |
-| TL-SSH-002 | Successful login following repeated failures | CRITICAL |
-
-### TL-SSH-001: Repeated SSH Authentication Failures
-
-Identifies repeated failed SSH authentication attempts from the same source IP within a configurable time window.
-
-Default threshold: 5 failures within 10 minutes.
-
-### TL-SSH-002: Successful Login Following Repeated Failures
-
-Identifies a successful SSH authentication following at least 3 failed attempts from the same source IP within the configured time window.
-
-Default severity: CRITICAL.
-
-See [Detection Rules](docs/detection-rules.md) for the detailed logic.
-
-## Technology Stack
-
-| Technology | Purpose |
-|---|---|
-| Python 3 | Application development |
-| pytest | Automated testing |
-| argparse | CLI interface |
-| JSON | Structured reports |
-| CSV | Investigation exports |
-| dataclasses | Event and alert models |
-| setuptools | Python package installation |
-
-## Installation
-
-### Requirements
-
-- Python 3.10 or newer
-- Git
-- macOS, Linux, or another compatible Python environment
-
-### 1. Clone the repository
-
-    git clone https://github.com/Sudhakar-reddy20/threatlens.git
-
-    cd threatlens
-
-### 2. Create a virtual environment
-
-    python3 -m venv .venv
-
-### 3. Activate the environment
-
-macOS / Linux:
-
-    source .venv/bin/activate
-
-### 4. Install ThreatLens
-
-    python -m pip install --upgrade pip
-
-    python -m pip install -e ".[dev]"
-
-## Quick Start
-
-Run ThreatLens against the included synthetic SSH authentication dataset:
-
-    threatlens analyze sample_logs/auth.log --year 2026
-
-ThreatLens will parse the log entries, execute the detection rules, display the findings, and generate JSON and CSV reports.
-
-## Example Results
-
-The included sample dataset produces the following results:
-
-| Metric | Result |
-|---|---:|
-| Parsed SSH events | 10 |
-| Unsupported entries | 1 |
-| Failed logins | 8 |
-| Successful logins | 2 |
-| Alerts generated | 2 |
-
-### Example Findings
-
-**Alert 1 — HIGH**
-
-Repeated SSH Authentication Failures
-
-- Source IP: 192.0.2.50
-- Username: admin
-- Failed attempts: 5
-- Detection: TL-SSH-001
-
-**Alert 2 — CRITICAL**
-
-Successful SSH Login Following Repeated Failures
-
-- Source IP: 198.51.100.25
-- Username: testuser
-- Related events: 3 failures followed by 1 success
-- Detection: TL-SSH-002
-
-These findings demonstrate suspicious authentication patterns, not proof of a successful compromise.
-
-See the complete [Sample Investigation](docs/sample-investigation.md).
-
-## Command-Line Options
-
-    threatlens analyze --help
-
-Available configuration options:
-
-| Option | Purpose |
-|---|---|
-| `--output-dir` | Select the report output directory |
-| `--year` | Set the year for traditional syslog timestamps |
-| `--failure-threshold` | Configure the repeated failure threshold |
-| `--correlation-threshold` | Configure the preceding failure threshold |
-| `--window` | Configure the detection window in minutes |
-
-Example with custom thresholds:
-
-    threatlens analyze sample_logs/auth.log --year 2026 --failure-threshold 5 --correlation-threshold 3 --window 10
-
-## Generated Reports
-
-ThreatLens generates:
-
-    reports/
-    ├── threatlens_report.json
-    └── threatlens_report.csv
-
-The JSON report contains structured alert information and original log evidence.
-
-The CSV report provides investigation-friendly alert information and basic spreadsheet formula-injection protection.
-
-Generated reports are excluded from Git by default.
-
-## Running Tests
-
-Run the complete automated test suite:
-
-    python -m pytest -v
-
-The project currently includes 29 passing tests covering parsing, detection, reporting, and CLI behavior.
-
-## Project Structure
-
-    threatlens/
-    ├── docs/
-    │   ├── architecture.md
-    │   ├── detection-rules.md
-    │   └── sample-investigation.md
-    ├── reports/
-    ├── sample_logs/
-    │   └── auth.log
-    ├── src/
-    │   └── threatlens/
-    │       ├── __init__.py
-    │       ├── parser.py
-    │       ├── detector.py
-    │       ├── reporter.py
-    │       └── cli.py
-    ├── tests/
-    ├── .gitignore
-    ├── LICENSE
-    ├── pyproject.toml
-    └── README.md
-
-## Current Limitations
-
-- Currently focuses on Linux SSH authentication logs.
-- Detection is rule-based rather than machine-learning-based.
-- Traditional syslog timestamps require a supplied year for accurate interpretation.
-- Timezone information is not currently preserved by the parser.
-- Live monitoring, automatic blocking, and SIEM integrations are not implemented.
-
-## Roadmap
-
-- [ ] Expand Linux log format support.
-- [ ] Add additional authentication detection rules.
-- [ ] Improve event correlation and detection performance.
-- [ ] Add MITRE ATT&CK mapping.
-- [ ] Build an interactive SOC investigation dashboard.
-- [ ] Introduce real-time log monitoring.
-- [ ] Explore SIEM integrations.
-
-## Responsible Use
-
-ThreatLens is intended for defensive security monitoring, education, and authorized log analysis.
-
-The included sample dataset is synthetic and uses documentation-only IP address ranges.
-
-Alerts should be investigated and validated before drawing conclusions about malicious activity.
-
-## Author
-
-**Sudhakar Reddy**
-
-Cybersecurity | SOC Analysis | Blue Team 
-
-GitHub: [Sudhakar-reddy20](https://github.com/Sudhakar-reddy20)
+# 🛡️ THREATLENS
+### SEE THE EVIDENCE. DETECT THE THREAT.
+
+<p align="center">
+  <strong>An Evidence-Driven SOC Log Analysis & Threat Detection Platform</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-00D26A?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Domain-SOC%20%7C%20Blue%20Team-111111?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Output-JSON%20%7C%20CSV-00D26A?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Tests-29%20Passing-success?style=for-the-badge&logo=pytest&logoColor=white" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/Sudhakar-reddy20/threatlens">Repository</a> •
+  <a href="https://github.com/Sudhakar-reddy20/threatlens/issues">Report an Issue</a> •
+  <a href="https://github.com/Sudhakar-reddy20">Developer</a>
+</p>
 
 ---
 
-*ThreatLens — See the evidence. Detect the threat.*
+## `root@threatlens:~$ whoami`
+
+ThreatLens is a Python-based security log analysis tool designed to identify suspicious SSH authentication activity from Linux authentication logs.
+
+It applies rule-based detection logic to authentication events, identifies suspicious patterns, and generates structured alerts with supporting evidence.
+
+The project demonstrates a practical SOC investigation workflow:
+
+**Log Collection → Parsing → Detection → Evidence → Alert Reporting**
+
+> ThreatLens is currently a local, rule-based CLI prototype. It is not a live monitoring agent, SIEM platform, or automated incident response system.
+
+## ⚡ Key Capabilities
+
+| Capability | Description |
+|---|---|
+| Log Analysis | Parses Linux SSH authentication logs |
+| Event Classification | Identifies failed and successful authentication attempts |
+| Brute-Force Detection | Detects repeated SSH authentication failures |
+| Suspicious Login Detection | Identifies successful authentication following repeated failures |
+| Evidence-Based Alerts | Includes relevant events and source IP information |
+| JSON Reporting | Generates machine-readable security reports |
+| CSV Reporting | Exports alerts for spreadsheet-based investigation |
+| Testing | Automated test coverage across core modules |
+
+## 🔍 Detection Engine
+
+ThreatLens currently implements two SSH detection rules.
+
+### TL-SSH-001 — SSH Brute-Force Activity
+
+**Severity:** HIGH
+
+**Detection logic:**
+- Monitors failed SSH authentication attempts.
+- Groups attempts by source IP.
+- Detects 5 or more failures within a rolling 10-minute window.
+
+**SOC investigation questions:**
+- Is the source IP associated with known malicious activity?
+- Are multiple user accounts being targeted?
+- Are authentication attempts occurring repeatedly?
+- Is the activity part of a broader attack pattern?
+
+### TL-SSH-002 — Successful Login After Repeated Failures
+
+**Severity:** CRITICAL
+
+**Detection logic:**
+- Identifies repeated failed authentication attempts.
+- Checks whether a successful authentication follows at least 3 failures from the same source IP within the preceding 10 minutes.
+
+**SOC investigation questions:**
+- Was the successful login expected?
+- Which account was accessed?
+- Did the source IP previously generate suspicious activity?
+- Are there additional signs of account compromise?
+
+*Severity labels represent the project's configured detection rules, not a confirmed real-world incident classification.*
+
+## 🧠 Investigation Workflow
+
+```text
+          LINUX AUTH LOGS
+                 |
+                 v
+          LOG PARSER
+                 |
+                 v
+         EVENT CLASSIFICATION
+                 |
+                 v
+          DETECTION ENGINE
+                 |
+          +------+------+
+          |             |
+          v             v
+      TL-SSH-001    TL-SSH-002
+          |             |
+          +------+------+
+                 |
+                 v
+          EVIDENCE COLLECTION
+                 |
+                 v
+           ALERT GENERATION
+                 |
+           +-----+-----+
+           |           |
+           v           v
+         JSON         CSV
+         REPORT      REPORT
+```
+
+## 🏗️ Project Architecture
+
+```text
+ThreatLens/
+│
+├── threatlens/
+│   ├── __init__.py
+│   ├── parser.py
+│   ├── detector.py
+│   ├── reporter.py
+│   └── cli.py
+│
+├── tests/
+│   ├── test_parser.py
+│   ├── test_detector.py
+│   ├── test_reporter.py
+│   └── test_cli.py
+│
+├── data/
+│   └── sample_auth.log
+│
+├── docs/
+│   ├── architecture.md
+│   ├── detection-rules.md
+│   └── sample-investigation.md
+│
+├── reports/
+│
+├── pyproject.toml
+├── README.md
+└── .gitignore
+```
+
+## 🚀 Installation & Quick Start
+
+### Requirements
+
+- Python 3.10 or later
+- Git
+- macOS, Linux, or another supported Python environment
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Sudhakar-reddy20/threatlens.git
+cd threatlens
+```
+
+### 2. Create a virtual environment
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+```
+
+### 3. Install ThreatLens
+
+```bash
+python -m pip install --upgrade pip && python -m pip install -e .
+```
+
+### 4. Run the analysis
+
+```bash
+threatlens analyze data/sample_auth.log
+```
+
+### 5. Generate reports
+
+```bash
+threatlens analyze data/sample_auth.log --json reports/alerts.json --csv reports/alerts.csv
+```
+
+For additional CLI options:
+
+```bash
+threatlens analyze --help
+```
+
+## 📊 Sample Investigation Results
+
+The included synthetic authentication-log dataset produces the following results:
+
+| Metric | Result |
+|---|---:|
+| Total parsed events | 10 |
+| Unsupported events | 1 |
+| Failed authentication events | 8 |
+| Successful authentication events | 2 |
+| Generated alerts | 2 |
+
+### Example Alert — SSH Brute Force
+
+```json
+{
+  "rule_id": "TL-SSH-001",
+  "severity": "HIGH",
+  "source_ip": "192.0.2.50",
+  "description": "Repeated SSH authentication failures detected"
+}
+```
+
+*Illustrative alert structure. Actual report fields and values are generated by the application.*
+
+### Example Alert — Suspicious Successful Login
+
+```json
+{
+  "rule_id": "TL-SSH-002",
+  "severity": "CRITICAL",
+  "source_ip": "198.51.100.25",
+  "description": "Successful SSH authentication following repeated failures"
+}
+```
+
+*The IP addresses used in sample data are documentation-only addresses.*
+
+## 📁 Generated Reports
+
+ThreatLens supports two report formats:
+
+| Format | Output |
+|---|---|
+| JSON | `reports/alerts.json` |
+| CSV | `reports/alerts.csv` |
+
+These reports can support further investigation, evidence review, and security reporting workflows.
+
+## 🧪 Testing
+
+ThreatLens includes automated tests for its core functionality.
+
+```bash
+python -m pytest -v
+```
+
+**Current test result: 29 passing tests.**
+
+Test coverage includes:
+- Log parsing
+- Event classification
+- Detection rule evaluation
+- Report generation
+- CLI behavior
+- CSV formula-injection mitigation
+
+## 🛠️ Technology Stack
+
+- **Language:** Python
+- **Testing:** Pytest
+- **Data Formats:** JSON, CSV
+- **Environment:** Python virtual environment
+- **Version Control:** Git and GitHub
+
+## ⚠️ Current Limitations
+
+ThreatLens is an early-stage project with a deliberately focused scope.
+
+- Supports a focused subset of Linux SSH authentication log formats.
+- Uses predefined rule-based detection rather than machine learning.
+- Traditional syslog timestamps require a supplied year.
+- Timezone information is not preserved.
+- Does not currently provide live log ingestion.
+- Does not automatically block IP addresses.
+- Does not integrate with external SIEM platforms.
+
+## 🗺️ Roadmap
+
+The following are planned enhancements, not currently implemented features.
+
+- [ ] Interactive SOC dashboard
+- [ ] Live log ingestion
+- [ ] More SSH and Linux detection rules
+- [ ] MITRE ATT&CK mapping
+- [ ] Threat intelligence enrichment
+- [ ] Splunk and Wazuh integration
+- [ ] Alert severity prioritization
+- [ ] Investigation timeline visualization
+
+## 🔐 Responsible Use
+
+ThreatLens is intended for educational purposes, defensive security research, and authorized log analysis.
+
+The included sample data uses documentation-only IP addresses. Always analyze logs and systems you own or have explicit authorization to investigate.
+
+## 👨‍💻 Author
+
+**Sudhakar Reddy**
+
+Computer Science Student | SOC Analyst Aspirant | Blue Team & Cybersecurity Learner
+
+- GitHub: https://github.com/Sudhakar-reddy20
+- LinkedIn: https://www.linkedin.com/in/sudhakar-reddy1920
+
+---
+
+<p align="center">
+  <strong>THREATLENS</strong>
+  <br/>
+  <code>SEE THE EVIDENCE. DETECT THE THREAT.</code>
+  <br/><br/>
+  <sub>Built to demonstrate practical security log analysis and evidence-driven threat detection.</sub>
+</p>
