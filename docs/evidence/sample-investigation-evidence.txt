@@ -1,0 +1,39 @@
+THREATLENS — SYNTHETIC INVESTIGATION EVIDENCE
+==============================================
+
+Dataset: sample_logs/auth.log
+Analysis year: 2026
+Expected supported events: 10
+Expected unsupported entries: 1
+Expected failed authentications: 8
+Expected successful authentications: 2
+
+Finding A
+---------
+Rule: TL-SSH-001
+Source: 192.0.2.50
+Qualifying failures: 5
+Time range: 10:00:01–10:04:30
+Targeted accounts in the qualifying window: admin, root
+Interpretation: repeated authentication failures; investigate, do not
+treat this detection alone as proof of malicious activity.
+
+Finding B
+---------
+Rule: TL-SSH-002
+Source: 198.51.100.25
+Preceding failures: 3
+Successful account: testuser
+Time range: 10:05:00–10:06:30
+Interpretation: successful authentication following failures; verify
+the account owner and investigate session activity.
+
+Reproduce:
+  threatlens analyze sample_logs/auth.log --year 2026
+
+Reports:
+  reports/threatlens_report.json
+  reports/threatlens_report.csv
+
+This file is a concise evidence index for the synthetic dataset, not
+a captured runtime screenshot or a real-world incident report.
