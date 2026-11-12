@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Events>
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4625</EventID><TimeCreated SystemTime="2026-11-01T10:00:00.000Z"/><EventRecordID>1001</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN01</Computer></System>
+    <EventData><Data Name="TargetUserName">administrator</Data><Data Name="IpAddress">192.0.2.80</Data><Data Name="LogonType">3</Data></EventData>
+  </Event>
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4625</EventID><TimeCreated SystemTime="2026-11-01T10:01:00.000Z"/><EventRecordID>1002</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN01</Computer></System>
+    <EventData><Data Name="TargetUserName">administrator</Data><Data Name="IpAddress">192.0.2.80</Data><Data Name="LogonType">3</Data></EventData>
+  </Event>
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4625</EventID><TimeCreated SystemTime="2026-11-01T10:02:00.000Z"/><EventRecordID>1003</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN01</Computer></System>
+    <EventData><Data Name="TargetUserName">administrator</Data><Data Name="IpAddress">192.0.2.80</Data><Data Name="LogonType">3</Data></EventData>
+  </Event>
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4625</EventID><TimeCreated SystemTime="2026-11-01T10:03:00.000Z"/><EventRecordID>1004</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN01</Computer></System>
+    <EventData><Data Name="TargetUserName">administrator</Data><Data Name="IpAddress">192.0.2.80</Data><Data Name="LogonType">3</Data></EventData>
+  </Event>
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4625</EventID><TimeCreated SystemTime="2026-11-01T10:04:00.000Z"/><EventRecordID>1005</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN01</Computer></System>
+    <EventData><Data Name="TargetUserName">administrator</Data><Data Name="IpAddress">192.0.2.80</Data><Data Name="LogonType">3</Data></EventData>
+  </Event>
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4624</EventID><TimeCreated SystemTime="2026-11-01T10:05:00.000Z"/><EventRecordID>1006</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN01</Computer></System>
+    <EventData><Data Name="TargetUserName">administrator</Data><Data Name="IpAddress">192.0.2.80</Data><Data Name="LogonType">3</Data></EventData>
+  </Event>
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4720</EventID><TimeCreated SystemTime="2026-11-01T10:06:00.000Z"/><EventRecordID>1007</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN01</Computer></System>
+    <EventData><Data Name="TargetUserName">temp-user</Data><Data Name="SubjectUserName">admin-operator</Data></EventData>
+  </Event>
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>1102</EventID><TimeCreated SystemTime="2026-11-01T10:07:00.000Z"/><EventRecordID>1008</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN01</Computer></System>
+    <EventData><Data Name="SubjectUserName">admin-operator</Data></EventData>
+  </Event>
+</Events>
