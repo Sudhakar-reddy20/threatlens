@@ -11,29 +11,24 @@ from threatlens.detector import Alert
 
 def serialize_alert(alert: Alert) -> dict:
     """Convert an alert into a JSON-compatible dictionary."""
-
     data = asdict(alert)
     data["first_seen"] = alert.first_seen.isoformat()
     data["last_seen"] = alert.last_seen.isoformat()
     data["evidence"] = list(alert.evidence)
-
+    data["targeted_users"] = list(alert.targeted_users)
     return data
 
 
 def sanitize_csv_value(value):
     """Reduce spreadsheet formula-injection risk in untrusted CSV values."""
-
     if not isinstance(value, str):
         return value
 
     stripped = value.lstrip(" \t\r\n")
-
     if stripped.startswith(("=", "+", "-", "@")):
         return "'" + value
-
     if value.startswith(("\t", "\r", "\n")):
         return "'" + value
-
     return value
 
 
@@ -42,7 +37,6 @@ def generate_json_report(
     output_path: str | Path,
 ) -> Path:
     """Generate a structured JSON security report."""
-
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -53,11 +47,7 @@ def generate_json_report(
         "alerts": [serialize_alert(alert) for alert in alerts],
     }
 
-    path.write_text(
-        json.dumps(report, indent=4),
-        encoding="utf-8",
-    )
-
+    path.write_text(json.dumps(report, indent=4), encoding="utf-8")
     return path
 
 
@@ -66,7 +56,6 @@ def generate_csv_report(
     output_path: str | Path,
 ) -> Path:
     """Generate a spreadsheet-friendly CSV security report."""
-
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -77,6 +66,7 @@ def generate_csv_report(
         "description",
         "source_ip",
         "username",
+        "targeted_users",
         "first_seen",
         "last_seen",
         "event_count",
@@ -90,13 +80,12 @@ def generate_csv_report(
 
         for alert in alerts:
             row = serialize_alert(alert)
+            row["targeted_users"] = "; ".join(row["targeted_users"])
             row["evidence"] = " | ".join(row["evidence"])
-
             safe_row = {
                 key: sanitize_csv_value(value)
                 for key, value in row.items()
             }
-
             writer.writerow(safe_row)
 
     return path

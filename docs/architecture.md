@@ -2,90 +2,47 @@
 
 ## Overview
 
-ThreatLens is a Python-based security log analysis platform designed to identify suspicious SSH authentication activity and generate evidence-based security alerts.
+ThreatLens is a local Python CLI that analyzes supported Linux SSH authentication records and produces evidence-backed alerts.
 
-## Processing Pipeline
+## Actual repository layout
 
-    Linux SSH Logs
-          |
-          v
-       Log Parser
-          |
-          v
-    Authentication Events
-          |
-          v
-     Detection Engine
-          |
-          v
-      Security Alerts
-          |
-          v
-    JSON and CSV Reports
+```text
+src/threatlens/
+├── parser.py       # Syslog/SSH event parsing and validation
+├── detector.py     # TL-SSH-001 and TL-SSH-002
+├── reporter.py     # JSON and CSV serialization
+└── cli.py          # Arguments, orchestration, and console output
+tests/              # pytest coverage
+sample_logs/        # Synthetic authentication data
+docs/               # Architecture, rules, and investigation notes
+```
 
-## Core Components
+## Processing pipeline
 
-### 1. Log Parser
+1. **Input:** Read a local authentication log file.
+2. **Parsing:** Extract supported SSH authentication records into immutable `AuthEvent` objects.
+3. **Validation:** Validate timestamps, IP addresses, and source ports; count unsupported lines.
+4. **Detection:** Apply configurable time-window rules by source IP.
+5. **Evidence:** Retain original log lines and targeted usernames.
+6. **Reporting:** Write JSON and CSV reports.
 
-- Reads Linux SSH authentication logs.
-- Extracts timestamps, hostnames, usernames, source IP addresses, ports, and authentication outcomes.
-- Supports successful and failed SSH authentication events.
-- Skips unsupported or malformed entries safely.
+## Detection components
 
-### 2. Detection Engine
+- **TL-SSH-001:** Detect a qualifying rolling window of failed SSH logins. Emit one alert for a contiguous failure burst; a quiet gap longer than the configured window begins a new burst.
+- **TL-SSH-002:** For each successful login, correlate failures from the same source IP in the preceding configured window.
 
-Analyzes authentication events using configurable detection thresholds and time windows.
+## Alert data
 
-Current detection rules:
+Each alert includes its rule ID, severity, title, description, source IP, representative username, targeted usernames, first/last timestamps, event count, original evidence lines, and analyst recommendation.
 
-- TL-SSH-001: Repeated SSH authentication failures.
-- TL-SSH-002: Successful SSH authentication following repeated failures.
+## Reliability and safety
 
-### 3. Alert System
+- Malformed or unsupported input records are skipped and counted.
+- Invalid detection thresholds are rejected.
+- Input and report I/O failures are returned as CLI errors.
+- CSV fields are sanitized against common spreadsheet formula-injection prefixes.
+- Synthetic examples use documentation-only IP ranges.
 
-Each alert contains a rule ID, severity, description, source IP, username, timestamps, event count, original log evidence, and recommended investigation actions.
+## Known limitations
 
-### 4. Report Generator
-
-- JSON reports for structured analysis and integrations.
-- CSV reports for spreadsheet-based investigations.
-- Basic protection against spreadsheet formula injection in CSV values.
-
-### 5. Command-Line Interface
-
-Provides a command-line interface to analyze authentication logs and configure detection thresholds.
-
-## Technology Stack
-
-| Technology | Purpose |
-|---|---|
-| Python 3 | Core application |
-| pytest | Automated testing |
-| JSON | Structured reports |
-| CSV | Investigation reports |
-| argparse | Command-line interface |
-| dataclasses | Structured event and alert models |
-
-## Security and Reliability
-
-- Handles malformed log entries without terminating the entire analysis.
-- Preserves original log evidence in JSON alerts.
-- Supports configurable detection thresholds.
-- Uses documentation-only IP addresses in sample logs.
-
-## Current Limitations
-
-- Currently focuses on Linux SSH authentication logs.
-- Uses rule-based detection rather than machine learning.
-- Traditional syslog timestamps do not contain a year; an explicit year can be supplied.
-- Timestamps are currently interpreted without timezone information.
-- Does not provide live monitoring or automatic blocking.
-
-## Future Development
-
-- Additional Linux authentication log parsers.
-- More detection rules and event correlation.
-- Interactive investigation dashboard.
-- Real-time log monitoring.
-- SIEM integration.
-- MITRE ATT&CK technique mapping.
+The parser supports a focused subset of SSH syslog messages. Traditional syslog timestamps lack year and timezone; the CLI's `--year` option supplies the year. The tool does not provide live ingestion, automated blocking, or SIEM integration.

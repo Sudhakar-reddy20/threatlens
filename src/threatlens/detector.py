@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from threatlens.parser import AuthEvent
 
@@ -17,8 +17,9 @@ class Alert:
     description: str
     source_ip: str
     username: str
-    first_seen: object
-    last_seen: object
+    targeted_users: tuple[str, ...]
+    first_seen: datetime
+    last_seen: datetime
     event_count: int
     evidence: tuple[str, ...]
     recommendation: str
@@ -33,26 +34,24 @@ def detect_threats(
     """
     Detect repeated SSH failures and success following repeated failures.
 
-    TL-SSH-001:
-        Detect the first window containing at least failure_threshold
-        failures from one source IP.
+    TL-SSH-001 emits one alert for each contiguous failure burst that
+    contains a qualifying rolling window. A burst is split when the gap
+    between consecutive failures is greater than the configured window.
+    This avoids duplicate alerts for every overlapping window while still
+    allowing a later, separate burst from the same IP to alert again.
 
-    TL-SSH-002:
-        Detect a successful login when at least correlation_threshold
-        failures from the same source IP occurred in the preceding window.
+    TL-SSH-002 evaluates every successful login against failures from the
+    same source IP in the preceding window.
 
     These rules identify suspicious patterns, not confirmed compromise.
     """
     if failure_threshold < 1 or correlation_threshold < 1:
         raise ValueError("Detection thresholds must be at least 1.")
-
     if window_minutes < 1:
         raise ValueError("Window must be at least 1 minute.")
 
     window = timedelta(minutes=window_minutes)
-
     events_by_ip: dict[str, list[AuthEvent]] = defaultdict(list)
-
     for event in events:
         events_by_ip[event.source_ip].append(event)
 
@@ -60,53 +59,71 @@ def detect_threats(
 
     for source_ip, ip_events in events_by_ip.items():
         ordered = sorted(ip_events, key=lambda event: event.timestamp)
+        failures = [event for event in ordered if event.outcome == "failure"]
 
-        failures = [
-            event for event in ordered
-            if event.outcome == "failure"
-        ]
-
-        # TL-SSH-001: Repeated failed SSH authentication.
-        left = 0
-
-        for right, current in enumerate(failures):
-            while (
-                failures[left].timestamp < current.timestamp - window
+        # Split failure activity into bursts separated by a quiet period
+        # longer than the detection window.
+        bursts: list[list[AuthEvent]] = []
+        for failure in failures:
+            if (
+                not bursts
+                or failure.timestamp - bursts[-1][-1].timestamp > window
             ):
-                left += 1
+                bursts.append([failure])
+            else:
+                bursts[-1].append(failure)
 
-            matching_failures = failures[left:right + 1]
+        # TL-SSH-001: one alert per qualifying burst, using the first
+        # qualifying rolling window as the alert's evidence.
+        for burst in bursts:
+            left = 0
+            qualifying_window: list[AuthEvent] | None = None
 
-            if len(matching_failures) >= failure_threshold:
-                alerts.append(
-                    Alert(
-                        rule_id="TL-SSH-001",
-                        severity="HIGH",
-                        title="Repeated SSH Authentication Failures",
-                        description=(
-                            f"At least {failure_threshold} failed SSH "
-                            f"authentication attempts were observed from "
-                            f"{source_ip} within {window_minutes} minutes."
-                        ),
-                        source_ip=source_ip,
-                        username=current.username,
-                        first_seen=matching_failures[0].timestamp,
-                        last_seen=current.timestamp,
-                        event_count=len(matching_failures),
-                        evidence=tuple(
-                            event.raw_line for event in matching_failures
-                        ),
-                        recommendation=(
-                            "Review the source IP, targeted accounts, "
-                            "authentication logs, and firewall controls. "
-                            "Confirm whether the activity is authorized."
-                        ),
-                    )
+            for right, current in enumerate(burst):
+                while (
+                    left <= right
+                    and burst[left].timestamp < current.timestamp - window
+                ):
+                    left += 1
+
+                candidate = burst[left:right + 1]
+                if len(candidate) >= failure_threshold:
+                    qualifying_window = candidate
+                    break
+
+            if qualifying_window is None:
+                continue
+
+            targeted_users = tuple(sorted({
+                event.username for event in qualifying_window
+            }))
+            alerts.append(
+                Alert(
+                    rule_id="TL-SSH-001",
+                    severity="HIGH",
+                    title="Repeated SSH Authentication Failures",
+                    description=(
+                        f"At least {failure_threshold} failed SSH "
+                        f"authentication attempts were observed from "
+                        f"{source_ip} within {window_minutes} minutes. "
+                        f"Targeted accounts: {', '.join(targeted_users)}."
+                    ),
+                    source_ip=source_ip,
+                    username=targeted_users[0],
+                    targeted_users=targeted_users,
+                    first_seen=qualifying_window[0].timestamp,
+                    last_seen=qualifying_window[-1].timestamp,
+                    event_count=len(qualifying_window),
+                    evidence=tuple(event.raw_line for event in qualifying_window),
+                    recommendation=(
+                        "Review the source IP, all targeted accounts, "
+                        "authentication logs, and firewall controls. "
+                        "Confirm whether the activity is authorized."
+                    ),
                 )
-                # Report the first qualifying window for this IP.
-                break
+            )
 
-        # TL-SSH-002: Successful login after repeated failures.
+        # TL-SSH-002: correlate each success with preceding failures.
         for success in ordered:
             if success.outcome != "success":
                 continue
@@ -116,9 +133,12 @@ def detect_threats(
                 if success.timestamp - window
                 <= event.timestamp < success.timestamp
             ]
-
             if len(preceding_failures) < correlation_threshold:
                 continue
+
+            targeted_users = tuple(sorted({
+                event.username for event in preceding_failures
+            } | {success.username}))
 
             alerts.append(
                 Alert(
@@ -129,10 +149,12 @@ def detect_threats(
                         f"A successful SSH login from {source_ip} occurred "
                         f"after {len(preceding_failures)} failed attempts "
                         f"within the preceding {window_minutes} minutes. "
+                        f"Accounts involved: {', '.join(targeted_users)}. "
                         "This requires analyst investigation."
                     ),
                     source_ip=source_ip,
                     username=success.username,
+                    targeted_users=targeted_users,
                     first_seen=preceding_failures[0].timestamp,
                     last_seen=success.timestamp,
                     event_count=len(preceding_failures) + 1,
@@ -147,4 +169,7 @@ def detect_threats(
                 )
             )
 
-    return sorted(alerts, key=lambda alert: alert.last_seen)
+    return sorted(
+        alerts,
+        key=lambda alert: (alert.last_seen, alert.rule_id, alert.source_ip),
+    )
