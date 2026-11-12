@@ -1,92 +1,69 @@
 # ThreatLens Sample Investigation
 
-## Case Overview
+## Case overview
 
-This investigation demonstrates how ThreatLens identifies suspicious SSH authentication activity using synthetic Linux authentication logs.
+This case demonstrates rule-based triage of a synthetic Linux SSH authentication log. The dataset is designed for repeatable learning and does not represent a real incident.
 
-## Analysis Environment
+## Environment and reproduction
 
 - Tool: ThreatLens
-- Log source: sample_logs/auth.log
-- Operating system: macOS development environment
-- Log format: Linux SSH authentication records
-- Analysis year: 2026
+- Input: `sample_logs/auth.log`
+- Log type: Linux SSH syslog-style authentication records
+- Sample year: 2026
 
-## Analysis Results
-
-| Metric | Result |
-|---|---:|
-| Total parsed events | 10 |
-| Unsupported entries | 1 |
-| Failed logins | 8 |
-| Successful logins | 2 |
-| Alerts generated | 2 |
-
-## Finding 1: Repeated SSH Authentication Failures
-
-- Rule: TL-SSH-001
-- Severity: HIGH
-- Source IP: 192.0.2.50
-- Username: admin
-- Failed attempts: 5
-- First observed: 10:00:01
-- Last observed: 10:04:30
-
-### Analyst Assessment
-
-Five failed authentication attempts from the same source IP occurred within the configured detection window.
-
-This pattern is consistent with repeated password guessing and requires investigation.
-
-### Recommended Actions
-
-- Review the source IP and targeted account.
-- Check for related authentication activity.
-- Verify whether the attempts were authorized.
-- Review relevant firewall and access controls.
-
-## Finding 2: Successful Login Following Repeated Failures
-
-- Rule: TL-SSH-002
-- Severity: CRITICAL
-- Source IP: 198.51.100.25
-- Username: testuser
-- Related events: 3 failures followed by 1 success
-- First observed: 10:05:00
-- Last observed: 10:06:30
-
-### Analyst Assessment
-
-A successful SSH authentication occurred after three failed attempts from the same source IP within the configured time window.
-
-This pattern deserves urgent investigation because the successful authentication may indicate compromised credentials.
-
-### Recommended Actions
-
-- Verify the login with the account owner.
-- Review the resulting session and subsequent activity.
-- Check MFA status and account security.
-- Investigate related events from the same source.
-
-## Reproduction
-
-Run the following command from the project root:
-
-    threatlens analyze sample_logs/auth.log --year 2026
+```bash
+python -m pip install -e ".[dev]"
+threatlens analyze sample_logs/auth.log --year 2026
+```
 
 Generated reports:
+- `reports/threatlens_report.json`
+- `reports/threatlens_report.csv`
 
-- reports/threatlens_report.json
-- reports/threatlens_report.csv
+## Dataset observations
 
-## Investigation Conclusion
+The sample contains 11 lines: 10 supported SSH authentication events and one unsupported connection-close event. The supported events include eight failures and two successes.
 
-ThreatLens successfully identified two suspicious SSH authentication patterns from the supplied synthetic dataset.
+## Finding 1 — Repeated SSH authentication failures
 
-The alerts provide source information, timestamps, event counts, original evidence, and recommended investigation actions.
+- Rule: TL-SSH-001
+- Severity: HIGH (project-defined)
+- Source: `192.0.2.50`
+- Qualifying evidence: five failed attempts between 10:00:01 and 10:04:30
+- Targeted accounts: `admin` and `root`
 
-These findings are detection leads, not proof of a successful compromise. Further investigation is required before determining whether an actual attack occurred.
+**Assessment:** Multiple authentication failures from one source within the configured window are consistent with password guessing. The source and account context require investigation; the pattern alone does not establish malicious intent.
 
-## Data Disclaimer
+**Recommended analyst actions:**
+1. Confirm whether the source is an approved scanner, jump host, or administrator endpoint.
+2. Review all targeted accounts and nearby authentication events.
+3. Check for related activity on the destination host.
+4. Escalate or contain only according to the organization's incident-response procedure.
 
-The sample log dataset is synthetic. Its IP addresses belong to documentation-only address ranges and do not identify real attackers or systems.
+## Finding 2 — Successful login after repeated failures
+
+- Rule: TL-SSH-002
+- Severity: CRITICAL (project-defined)
+- Source: `198.51.100.25`
+- Evidence: three failed attempts followed by a successful password login at 10:06:30
+- Account: `testuser`
+
+**Assessment:** A successful authentication after repeated failures warrants prompt verification. It is not proof of compromise.
+
+**Recommended analyst actions:**
+1. Verify the login with the account owner.
+2. Review session commands, process activity, and subsequent network connections.
+3. Check MFA and credential-reset history where available.
+4. Preserve relevant host and network evidence.
+
+## Evidence handling
+
+ThreatLens includes the original matching log lines in each alert's evidence field. The JSON report retains evidence as an array; the CSV report joins evidence lines into a single field. Keep original source logs separately and follow organizational retention and chain-of-custody procedures.
+
+## Conclusion
+
+The synthetic dataset is expected to produce two detection leads: repeated failures from `192.0.2.50` and a successful login following failures from `198.51.100.25`. These are triage findings only. Additional host, identity, and network evidence is required to determine whether either event represents an actual incident.
+
+## Data disclaimer
+
+The dataset uses documentation-only IP ranges and synthetic usernames. No real attacker or production host is represented.
