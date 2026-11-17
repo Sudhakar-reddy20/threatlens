@@ -2,6 +2,12 @@
 ### SEE THE EVIDENCE. DETECT THE THREAT.
 
 <p align="center">
+  <a href="https://github.com/Sudhakar-reddy20/threatlens/actions/workflows/portfolio-tests.yml"><img src="https://github.com/Sudhakar-reddy20/threatlens/actions/workflows/portfolio-tests.yml/badge.svg?branch=main" alt="ThreatLens and Windows analyzer tests" /></a>
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white" alt="Python 3.10+" />
+  <img src="https://img.shields.io/badge/License-MIT-0A7F5A" alt="MIT License" />
+</p>
+
+<p align="center">
   <strong>An Evidence-Driven SOC Log Analysis & Threat Detection Platform</strong>
 </p>
 
@@ -27,6 +33,19 @@ ThreatLens is a Python command-line tool for analyzing Linux SSH authentication 
 **Workflow:** Log Collection → Parsing → Detection → Evidence → Reporting
 
 > ThreatLens is a local, rule-based prototype. It is not a live monitoring agent, SIEM platform, or automated incident-response system.
+
+## Recruiter / reviewer quick scan
+
+| Item | Evidence |
+|---|---|
+| **Primary use case** | Defensive triage of Linux SSH authentication logs |
+| **Detection logic** | Repeated failures and failure-to-success correlation |
+| **Evidence handling** | Original matching log lines retained in alerts |
+| **Outputs** | Structured JSON and CSV reports |
+| **Quality checks** | pytest suite plus GitHub Actions across Python 3.10–3.13 |
+| **Scope** | Local rule-based prototype; no live monitoring or automated response |
+
+**Start here:** [Sample investigation](docs/sample-investigation.md) · [Detection rules](docs/detection-rules.md) · [Architecture](docs/architecture.md)
 
 ## Key capabilities
 
@@ -200,11 +219,13 @@ ThreatLens is intended for defensive security education, authorized log analysis
 
 ## Author
 
-**Sudhakar Reddy**  
+**Onteddu Sudhakar Reddy**  
 Computer Science Student | SOC Analyst Aspirant | Blue Team Learner
 
 - GitHub: https://github.com/Sudhakar-reddy20
 - LinkedIn: https://www.linkedin.com/in/sudhakar-reddy1920
+- Portfolio: https://sudhakar-reddy20.github.io/sudhakar-portfolio/
+- Email: Sudhakar1558796@gmail.com
 
 ---
 
