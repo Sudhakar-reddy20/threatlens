@@ -1,5 +1,9 @@
 # Windows Event Log Analyzer
 
+[![Project tests](https://github.com/Sudhakar-reddy20/threatlens/actions/workflows/portfolio-tests.yml/badge.svg?branch=main)](https://github.com/Sudhakar-reddy20/threatlens/actions/workflows/portfolio-tests.yml)
+
+**Part of the [ThreatLens defensive security portfolio](https://github.com/Sudhakar-reddy20/threatlens).** This subproject focuses on exported Windows Security Event XML.
+
 A defensive Python CLI for triaging **exported Windows Security Event XML**. It parses Windows Event Viewer XML exports, extracts selected Security events, detects suspicious authentication patterns, and writes JSON/CSV investigation reports.
 
 > This project analyzes exported XML files. It does not read live Windows event channels, parse raw EVTX binaries, or perform response actions.
@@ -79,3 +83,13 @@ Each alert includes rule ID, severity, event IDs, source IP where applicable, us
 - Source IP may be absent, represented as `-`, or unavailable depending on event type and audit configuration.
 - No automatic account disabling, IP blocking, or other response action is performed.
 - Use only logs you own or are authorized to analyze. Preserve originals and follow organizational evidence-handling requirements.
+
+## Quality checks
+
+The project is included in the repository's GitHub Actions workflow. The workflow runs:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+See the [latest workflow runs](https://github.com/Sudhakar-reddy20/threatlens/actions/workflows/portfolio-tests.yml) for the current result.
